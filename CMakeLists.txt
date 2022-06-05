@@ -9,6 +9,7 @@ include_directories(include)
 
 add_library(${PROJECT_NAME}
   src/types.cpp
+  src/parsing.cpp
 )
 
 add_executable(main src/main.cpp)
