@@ -11,6 +11,12 @@
 namespace pimpl::parsing
 {
 
+/// Parse a string and turn it into a useable Sentence class representation
+/**
+ * @param text A string of text which uses the predicate logic syntax specified
+ *        in the README
+ * @return The equivalent Sentence object
+ */
 Sentence parseString(std::string text);
 
 /// 'private' functions for parsing
@@ -38,12 +44,11 @@ enum class Token
   SYMBOL = 7,
 };
 
-/// Turn a string into tokens, for use by the \ref parse_string
+/// Turn a string into tokens
 std::vector<Token> tokenize(std::string text);
 
-/// Convert a string into this library's representation of a predicate logic
-/// sentence
-Sentence stringToSentence(std::string text);
+/// Convert a string **in conjunctive normal form** into a Sentence object
+Sentence parseConjunctiveNormal(std::string text);
 
 } // namespace impl
 

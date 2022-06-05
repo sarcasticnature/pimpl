@@ -5,7 +5,7 @@ namespace pimpl::parsing
 
 Sentence parseSentence(std::string text)
 {
-  return impl::stringToSentence(text);
+  return impl::parseConjunctiveNormal(text);
 }
 
 namespace impl
@@ -16,7 +16,7 @@ std::vector<Token> tokenize(std::string text)
   return {};
 }
 
-Sentence stringToSentence(std::string text)
+Sentence parseConjunctiveNormal(std::string text)
 {
   return Sentence();
 }
