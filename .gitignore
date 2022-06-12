@@ -39,3 +39,8 @@ build/
 
 # Doxygen documentation directory
 doc/
+
+
+# Added by cargo
+
+/target
