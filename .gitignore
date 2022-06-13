@@ -1,46 +1,10 @@
 # Swap files
 *.swp
 
-# Prerequisites
-*.d
+# Rust stuff
+debug/
+target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Build directory
-build/
-
-# Doxygen documentation directory
-doc/
-
-
-# Added by cargo
-
-/target
