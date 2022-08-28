@@ -12,13 +12,19 @@ pub enum Token {
     #[token("\n")]
     NewLine,
 
+    #[token("true")]
+    True,
+
+    #[token("false")]
+    False,
+
     #[token("~")]
     Not,
 
-    #[token("^")]
+    #[token("&")]
     And,
 
-    #[token("v")]
+    #[token("|")]
     Or,
 
     #[token("->")]
@@ -31,6 +37,6 @@ pub enum Token {
     ParenL,
 
     #[token(")")]
-    ParenR
+    ParenR,
 }
 
