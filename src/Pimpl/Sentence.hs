@@ -1,4 +1,4 @@
-module Pimpl.Types
+module Pimpl.Sentence
 ( Sentence
 ) where
 
@@ -6,10 +6,11 @@ module Pimpl.Types
 data Sentence =
       False
     | True
-    | Symbol String
+    | Var String
     | Not Sentence
     | And Sentence Sentence
     | Or Sentence Sentence
     | Imp Sentence Sentence
     | Iff Sentence Sentence
+    deriving (Eq)
 

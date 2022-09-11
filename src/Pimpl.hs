@@ -1,5 +1,5 @@
 module Pimpl
-( module Pimpl.Types
+( module Pimpl.Sentence
 ) where
 
-import Pimpl.Types
+import Pimpl.Sentence

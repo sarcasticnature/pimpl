@@ -12,7 +12,7 @@ extra-source-files:
 
 library
     exposed-modules:  Pimpl,
-                      Pimpl.Types
+                      Pimpl.Sentence
     -- other-modules:
     -- other-extensions:
     build-depends:    base ^>=4.14.3.0

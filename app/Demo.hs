@@ -1,6 +1,6 @@
 module Main where
 
-import qualified Pimpl.Types (Sentence)
+import qualified Pimpl.Sentence (Sentence)
 
 main :: IO ()
 main = do
