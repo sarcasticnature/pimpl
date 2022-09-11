@@ -1,4 +1,5 @@
-module Pimpl (someFunc) where
+module Pimpl
+( module Pimpl.Types
+) where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+import Pimpl.Types
