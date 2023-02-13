@@ -5,6 +5,7 @@
 #include <variant>
 #include <memory>
 #include <stack>
+#include <vector>
 
 namespace pimpl
 {
