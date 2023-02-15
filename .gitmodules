@@ -1,0 +1,6 @@
+[submodule "3rd_party/cli"]
+	path = 3rd_party/cli
+	url = https://github.com/daniele77/cli.git
+[submodule "3rd_party/doctest"]
+	path = 3rd_party/doctest
+	url = https://github.com/doctest/doctest.git

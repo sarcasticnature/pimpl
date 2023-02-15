@@ -7,12 +7,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(pimpl)
 
+include(FetchContent)
+FetchContent_Declare(lexy URL https://lexy.foonathan.net/download/lexy-src.zip)
+FetchContent_MakeAvailable(lexy)
+
 include_directories(include)
+include_directories(3rd_party/cli/include)
+add_subdirectory(3rd_party/doctest)
 
 #set(pimple_srcs)
 
 add_library(pimpl INTERFACE)
 target_include_directories(pimpl INTERFACE include)
+target_link_libraries(pimpl INTERFACE foonathan::lexy)
 
-add_subdirectory(examples)
+add_subdirectory(app)
 
+# TODO: remove after testing
+add_executable(test_parsing test/test.cpp)
+target_link_libraries(test_parsing pimpl)
