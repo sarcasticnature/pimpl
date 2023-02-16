@@ -13,7 +13,7 @@ namespace ast
 
 struct AbstractBase
 {
-    virtual std::string as_str() = 0;
+    //virtual std::string as_str() = 0;
 };
 
 using abstract_ptr = std::shared_ptr<AbstractBase>;
