@@ -25,12 +25,21 @@ int main(int argc, char** argv)
     }
 
     //lexy::parse_tree_for<decltype(file.buffer())> tree{};
-    //auto sentence = lexy::parse_as_tree<pimpl::grammar::GrammarSentence>(tree, file.buffer(), lexy_ext::report_error);
-    //lexy::visualize(stdout, sentence, {lexy::visualize_fancy});
+    //auto result = lexy::parse_as_tree<pimpl::grammar::GrammarSentence>(tree, file.buffer(), lexy_ext::report_error);
+    //if (!result) return 2;
+    //lexy::visualize(stdout, tree, {lexy::visualize_fancy});
+
     auto sentence = lexy::parse<pimpl::grammar::GrammarSentence>(file.buffer(), lexy_ext::report_error);
     if (sentence.has_value()) {
-        std::cout << sentence.value()->as_str() << std::endl;
+        //std::cout << sentence.value()->as_str() << std::endl;
     }
+
+    //auto sentence = lexy::parse<pimpl::grammar::GrammarSentence>(file.buffer(), lexy_ext::report_error);
+    //if (sentence.has_value()) {
+    //    for (const auto& s : sentence.value()) {
+    //        std::cout << s->as_str() << std::endl;
+    //    }
+    //}
 
     if (!sentence)
         return 2;

@@ -38,7 +38,7 @@ struct AbstractBool : public AbstractBase
 
 struct AbstractUnary : public AbstractBase
 {
-    enum class Op {
+    enum Op {
         NOT,
     } op;
 
@@ -174,6 +174,20 @@ struct Expr : lexy::expression_production
         lexy::new_<ast::AbstractUnary, ast::abstract_ptr>,
         lexy::new_<ast::AbstractBinary, ast::abstract_ptr>);
 };
+
+//struct GrammarSentence
+//{
+//    static constexpr auto max_recursion_depth = 19;
+//
+//    static constexpr auto whitespace = dsl::ascii::blank | dsl::ascii::other_space;
+//
+//    //static constexpr auto rule = [] {
+//    //    auto at_eol = dsl::peek(dsl::eol);
+//    //    return dsl::terminator(at_eol).opt_list(dsl::p<Expr>, dsl::sep(dsl::ascii::newline));
+//    //}();
+//    static constexpr auto rule = dsl::terminator(dsl::eol).opt_list(dsl::p<Expr>, dsl::sep(dsl::ascii::newline));
+//    static constexpr auto value = lexy::as_list<std::vector<ast::abstract_ptr>>;
+//};
 
 struct GrammarSentence
 {
