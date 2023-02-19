@@ -1,9 +1,11 @@
 #include <iostream>
+#include <string>
 #include <cstdio>
 
 #include "pimpl/parsing.hpp"
 #include "lexy/action/parse.hpp"
 #include "lexy/action/parse_as_tree.hpp"
+#include "lexy/action/trace.hpp"
 #include "lexy/input/file.hpp"
 #include "lexy_ext/report_error.hpp"
 #include "lexy/visualize.hpp"
@@ -28,18 +30,19 @@ int main(int argc, char** argv)
     //auto result = lexy::parse_as_tree<pimpl::grammar::GrammarSentence>(tree, file.buffer(), lexy_ext::report_error);
     //if (!result) return 2;
     //lexy::visualize(stdout, tree, {lexy::visualize_fancy});
-
-    auto sentence = lexy::parse<pimpl::grammar::GrammarSentence>(file.buffer(), lexy_ext::report_error);
-    if (sentence.has_value()) {
-        //std::cout << sentence.value()->as_str() << std::endl;
-    }
+    //lexy::trace<pimpl::grammar::GrammarSentence>(stdout, file.buffer(), {lexy::visualize_fancy});
 
     //auto sentence = lexy::parse<pimpl::grammar::GrammarSentence>(file.buffer(), lexy_ext::report_error);
     //if (sentence.has_value()) {
-    //    for (const auto& s : sentence.value()) {
-    //        std::cout << s->as_str() << std::endl;
-    //    }
+    //    std::cout << sentence.value()->as_str() << std::endl;
     //}
+
+    auto sentence = lexy::parse<pimpl::grammar::GrammarSentence>(file.buffer(), lexy_ext::report_error);
+    if (sentence.has_value()) {
+        for (const auto& s : sentence.value()) {
+            std::cout << s->as_str() << std::endl;
+        }
+    }
 
     if (!sentence)
         return 2;

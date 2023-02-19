@@ -22,7 +22,4 @@ target_include_directories(pimpl INTERFACE include)
 target_link_libraries(pimpl INTERFACE foonathan::lexy)
 
 add_subdirectory(app)
-
-# TODO: remove after testing
-add_executable(test_parsing test/test.cpp)
-target_link_libraries(test_parsing pimpl)
+add_subdirectory(test)

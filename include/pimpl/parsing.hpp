@@ -1,4 +1,5 @@
 #include <memory>
+#include <vector>
 
 #include "lexy/dsl.hpp"
 #include "lexy/callback.hpp"
@@ -13,7 +14,7 @@ namespace ast
 
 struct AbstractBase
 {
-    //virtual std::string as_str() = 0;
+    virtual ~AbstractBase() = default;
 };
 
 using abstract_ptr = std::shared_ptr<AbstractBase>;
@@ -23,8 +24,6 @@ struct AbstractSymbol : public AbstractBase
     std::string name;
 
     explicit AbstractSymbol(std::string n) : name(std::move(n)) {}
-
-    //std::string as_str() override { return name; }
 };
 
 struct AbstractBool : public AbstractBase
@@ -32,8 +31,6 @@ struct AbstractBool : public AbstractBase
     bool value;
 
     explicit AbstractBool(bool v) : value(v) {}
-
-    //std::string as_str() override { return value ? "T" : "F"; }
 };
 
 struct AbstractUnary : public AbstractBase
@@ -45,8 +42,6 @@ struct AbstractUnary : public AbstractBase
     abstract_ptr right;
 
     explicit AbstractUnary(Op o, abstract_ptr r) : op(o), right(std::move(r)) {}
-
-    //std::string as_str() override { return "~" + right->as_str(); }
 };
 
 struct AbstractBinary : public AbstractBase
@@ -63,26 +58,6 @@ struct AbstractBinary : public AbstractBase
 
     explicit AbstractBinary(abstract_ptr l, Op o, abstract_ptr r)
         : op(o), left(std::move(l)), right(std::move(r)) {}
-
-    //std::string as_str() override
-    //{
-    //    std::string op_str;
-    //    switch (op) {
-    //        using enum Op;
-    //        case AND:
-    //            op_str = " & ";
-    //            break;
-    //        case OR:
-    //            op_str = " | ";
-    //            break;
-    //        case IMP:
-    //            op_str = " => ";
-    //            break;
-    //        case IFF:
-    //            op_str = " <=> ";
-    //    }
-    //    return "(" + left->as_str() + op_str + right->as_str() + ")";
-    //}
 };
 
 }   // namespace ast
@@ -118,7 +93,7 @@ struct Bool : lexy::token_production
 
 struct NestedExpr : lexy::transparent_production
 {
-    static constexpr auto whitespace = dsl::ascii::blank;
+    //static constexpr auto whitespace = dsl::ascii::blank;
     static constexpr auto rule = dsl::recurse<struct Expr>;
     static constexpr auto value = lexy::forward<ast::abstract_ptr>;
 };
@@ -175,28 +150,15 @@ struct Expr : lexy::expression_production
         lexy::new_<ast::AbstractBinary, ast::abstract_ptr>);
 };
 
-//struct GrammarSentence
-//{
-//    static constexpr auto max_recursion_depth = 19;
-//
-//    static constexpr auto whitespace = dsl::ascii::blank | dsl::ascii::other_space;
-//
-//    //static constexpr auto rule = [] {
-//    //    auto at_eol = dsl::peek(dsl::eol);
-//    //    return dsl::terminator(at_eol).opt_list(dsl::p<Expr>, dsl::sep(dsl::ascii::newline));
-//    //}();
-//    static constexpr auto rule = dsl::terminator(dsl::eol).opt_list(dsl::p<Expr>, dsl::sep(dsl::ascii::newline));
-//    static constexpr auto value = lexy::as_list<std::vector<ast::abstract_ptr>>;
-//};
-
 struct GrammarSentence
 {
     static constexpr auto max_recursion_depth = 19;
 
-    static constexpr auto whitespace = dsl::ascii::space;
+    static constexpr auto whitespace = dsl::ascii::blank;
 
-    static constexpr auto rule = dsl::p<Expr> + dsl::eof;
-    static constexpr auto value = lexy::forward<ast::abstract_ptr>;
+    static constexpr auto rule = dsl::terminator(dsl::eof).opt_list(dsl::p<Expr> + dsl::eol);
+
+    static constexpr auto value = lexy::as_list<std::vector<ast::abstract_ptr>>;
 };
 
 }   // namespace grammar
