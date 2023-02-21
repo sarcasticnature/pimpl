@@ -5,7 +5,7 @@
 #include <variant>
 #include <memory>
 #include <stack>
-#include <vector>
+#include <unordered_set>
 
 namespace pimpl
 {
@@ -20,6 +20,7 @@ public:
     struct Iff;
     
     using sentence_t = std::variant<std::monostate, std::string, bool, Not, And, Or, Imp, Iff>;
+    using sentence_ptr_t = std::shared_ptr<sentence_t>;
     
     static constexpr size_t INDEX_NIL = 0;
     static constexpr size_t INDEX_SYMBOL = 1;
@@ -32,7 +33,9 @@ public:
 
     struct Not
     {
-        std::shared_ptr<sentence_t> right;
+        sentence_ptr_t right;
+
+        explicit Not(sentence_ptr_t r) : right(r) {}
 
         bool operator==(const Not& rhs) const
         {
@@ -42,8 +45,10 @@ public:
     
     struct And
     {
-        std::shared_ptr<sentence_t> left;
-        std::shared_ptr<sentence_t> right;
+        sentence_ptr_t left;
+        sentence_ptr_t right;
+
+        explicit And(sentence_ptr_t l, sentence_ptr_t r) : left(l), right(r) {}
 
         bool operator==(const And& rhs) const
         {
@@ -53,8 +58,10 @@ public:
     
     struct Or
     {
-        std::shared_ptr<sentence_t> left;
-        std::shared_ptr<sentence_t> right;
+        sentence_ptr_t left;
+        sentence_ptr_t right;
+
+        explicit Or(sentence_ptr_t l, sentence_ptr_t r) : left(l), right(r) {}
 
         bool operator==(const Or& rhs)  const
         {
@@ -64,8 +71,10 @@ public:
     
     struct Imp
     {
-        std::shared_ptr<sentence_t> left;
-        std::shared_ptr<sentence_t> right;
+        sentence_ptr_t left;
+        sentence_ptr_t right;
+
+        explicit Imp(sentence_ptr_t l, sentence_ptr_t r) : left(l), right(r) {}
 
         bool operator==(const Imp& rhs) const
         {
@@ -75,8 +84,10 @@ public:
     
     struct Iff
     {
-        std::shared_ptr<sentence_t> left;
-        std::shared_ptr<sentence_t> right;
+        sentence_ptr_t left;
+        sentence_ptr_t right;
+
+        explicit Iff(sentence_ptr_t l, sentence_ptr_t r) : left(l), right(r) {}
 
         bool operator==(const Iff& rhs) const
         {
@@ -103,7 +114,7 @@ public:
     //    }
 
     //    sentence_t& operator*() const { return *data_; }
-    //    std::shared_ptr<sentence_t> operator->() const { return data_; }
+    //    sentence_ptr_t operator->() const { return data_; }
 
     //    bool operator==(const Iterator& it) const
     //    {
@@ -145,8 +156,8 @@ public:
     //    }
     //    Iterator operator++(int);
     //private:
-    //    std::shared_ptr<sentence_t> data_;
-    //    std::stack<std::shared_ptr<sentence_t>> stack_;
+    //    sentence_ptr_t data_;
+    //    std::stack<sentence_ptr_t> stack_;
     //};
 
     //struct Sentinel
@@ -158,9 +169,15 @@ public:
     //    }
     //};
 
+    Sentence() = default;
+    Sentence(sentence_ptr_t d, std::unordered_set<sentence_ptr_t> v)
+        : data_(d), symbols_(v)
+    {
+    }
+
 private:
-    std::shared_ptr<sentence_t> data_;
-    std::vector<std::shared_ptr<sentence_t>> symbols_;
+    sentence_ptr_t data_;
+    std::unordered_set<sentence_ptr_t> symbols_;
 };
 
 }   // namespace pimpl

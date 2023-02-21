@@ -60,6 +60,8 @@ struct AbstractBinary : public AbstractBase
         : op(o), left(std::move(l)), right(std::move(r)) {}
 };
 
+Sentence toSentence(abstract_ptr ptr);
+
 }   // namespace ast
 
 namespace grammar

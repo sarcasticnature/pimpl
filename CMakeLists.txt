@@ -15,11 +15,13 @@ include_directories(include)
 include_directories(3rd_party/cli/include)
 add_subdirectory(3rd_party/doctest)
 
-#set(pimple_srcs)
+set(pimpl_srcs
+    src/parsing.cpp
+)
 
-add_library(pimpl INTERFACE)
-target_include_directories(pimpl INTERFACE include)
-target_link_libraries(pimpl INTERFACE foonathan::lexy)
+add_library(pimpl ${pimpl_srcs})
+target_include_directories(pimpl PUBLIC include)
+target_link_libraries(pimpl PRIVATE foonathan::lexy doctest)
 
 add_subdirectory(app)
 add_subdirectory(test)
