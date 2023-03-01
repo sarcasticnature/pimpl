@@ -79,13 +79,13 @@ struct Bool : lexy::token_production
 {
     struct true_ : lexy::transparent_production
     {
-        static constexpr auto rule = LEXY_LIT("T");
+        static constexpr auto rule = LEXY_KEYWORD("T", dsl::identifier(dsl::ascii::word));
         static constexpr auto value = lexy::constant(true);
     };
 
     struct false_ : lexy::transparent_production
     {
-        static constexpr auto rule = LEXY_LIT("F");
+        static constexpr auto rule = LEXY_KEYWORD("F", dsl::identifier(dsl::ascii::word));
         static constexpr auto value = lexy::constant(false);
     };
 

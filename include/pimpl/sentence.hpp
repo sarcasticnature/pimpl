@@ -22,7 +22,7 @@ public:
     using sentence_t = std::variant<std::monostate, std::string, bool, Not, And, Or, Imp, Iff>;
     using sentence_ptr_t = std::shared_ptr<sentence_t>;
     
-    static constexpr size_t INDEX_NIL = 0;
+    static constexpr size_t INDEX_MONOSTATE = 0;
     static constexpr size_t INDEX_SYMBOL = 1;
     static constexpr size_t INDEX_BOOL = 2;
     static constexpr size_t INDEX_NOT = 3;
@@ -123,12 +123,12 @@ public:
 
     //    bool operator==(const Sentinel& it) const
     //    { 
-    //        return data_->index() == INDEX_NIL;
+    //        return data_->index() == INDEX_MONOSTATE;
     //    }
     //    Iterator& operator++()
     //    {
     //        switch (data_->index()) {
-    //            case INDEX_NIL:
+    //            case INDEX_MONOSTATE:
     //                if (!stack_.empty()) {
     //                    data_ = stack_.top();
     //                    stack_.pop();
@@ -165,7 +165,7 @@ public:
     //    //Sentinel() = default;
     //    bool operator==(Iterator it) const
     //    {
-    //        return it->index() == INDEX_NIL;
+    //        return it->index() == INDEX_MONOSTATE;
     //    }
     //};
 
