@@ -1,4 +1,4 @@
-#include <unordered_set>
+#include <unordered_map>
 
 #include "doctest/doctest.h"
 
@@ -9,7 +9,7 @@ namespace pimpl::ast
 
 inline Sentence::sentence_ptr_t sentenceBuilder(
     const abstract_ptr ast_ptr,
-    std::unordered_set<Sentence::sentence_ptr_t>& symbol_set)
+    std::unordered_map<std::string, Sentence::sentence_ptr_t>& symbol_map)
 {
     if (!ast_ptr) {
         return std::make_shared<Sentence::sentence_t>(std::monostate());
@@ -17,7 +17,7 @@ inline Sentence::sentence_ptr_t sentenceBuilder(
 
     if (auto ast_symbol = std::dynamic_pointer_cast<AbstractSymbol>(ast_ptr)) {
         auto symbol = std::make_shared<Sentence::sentence_t>(ast_symbol->name);
-        symbol_set.insert(symbol);
+        symbol_map.insert({ast_symbol->name, symbol});
         return symbol;
     }
 
@@ -27,7 +27,7 @@ inline Sentence::sentence_ptr_t sentenceBuilder(
 
     if (auto ast_unary = std::dynamic_pointer_cast<AbstractUnary>(ast_ptr)) {
         return std::make_shared<Sentence::sentence_t>(
-            Sentence::Not(sentenceBuilder(ast_unary->right, symbol_set)));
+            Sentence::Not(sentenceBuilder(ast_unary->right, symbol_map)));
     }
 
     if (auto ast_binary = std::dynamic_pointer_cast<AbstractBinary>(ast_ptr)) {
@@ -35,23 +35,23 @@ inline Sentence::sentence_ptr_t sentenceBuilder(
         switch (ast_binary->op) {
             case AbstractBinary::AND:
                 sentence_ptr = std::make_shared<Sentence::sentence_t>(Sentence::And(
-                    sentenceBuilder(ast_binary->left, symbol_set),
-                    sentenceBuilder(ast_binary->right, symbol_set)));
+                    sentenceBuilder(ast_binary->left, symbol_map),
+                    sentenceBuilder(ast_binary->right, symbol_map)));
                 break;
             case AbstractBinary::OR:
                 sentence_ptr = std::make_shared<Sentence::sentence_t>(Sentence::Or(
-                    sentenceBuilder(ast_binary->left, symbol_set),
-                    sentenceBuilder(ast_binary->right, symbol_set)));
+                    sentenceBuilder(ast_binary->left, symbol_map),
+                    sentenceBuilder(ast_binary->right, symbol_map)));
                 break;
             case AbstractBinary::IMP:
                 sentence_ptr = std::make_shared<Sentence::sentence_t>(Sentence::Imp(
-                    sentenceBuilder(ast_binary->left, symbol_set),
-                    sentenceBuilder(ast_binary->right, symbol_set)));
+                    sentenceBuilder(ast_binary->left, symbol_map),
+                    sentenceBuilder(ast_binary->right, symbol_map)));
                 break;
             case AbstractBinary::IFF:
                 sentence_ptr = std::make_shared<Sentence::sentence_t>(Sentence::Iff(
-                    sentenceBuilder(ast_binary->left, symbol_set),
-                    sentenceBuilder(ast_binary->right, symbol_set)));
+                    sentenceBuilder(ast_binary->left, symbol_map),
+                    sentenceBuilder(ast_binary->right, symbol_map)));
                 break;
         }
         return sentence_ptr;
@@ -65,14 +65,14 @@ Sentence toSentence(abstract_ptr ast_ptr)
 {
     Sentence::sentence_ptr_t sentence_ptr;
 
-    std::unordered_set<Sentence::sentence_ptr_t> symbol_set;
+    std::unordered_map<std::string, Sentence::sentence_ptr_t> symbol_map;
 
     if (ast_ptr == nullptr) {
-        return Sentence(sentence_ptr, symbol_set);
+        return Sentence(sentence_ptr, symbol_map);
     }
 
-    sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
-    return Sentence(sentence_ptr, symbol_set);
+    sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
+    return Sentence(sentence_ptr, symbol_map);
 }
 
 }   // namespace pimpl::ast
@@ -250,88 +250,98 @@ TEST_CASE("Manual verification of AST structure")
     //NOLINTEND(clang-diagnostic-potentially-evaluated-expression)
 }
 
-// TODO: add checks for symbol_set in subcases
+// TODO: add checks for symbol_map in subcases
 TEST_CASE("sentenceBuilder")
 {
     using namespace pimpl;
 
     ast::abstract_ptr ast_ptr = nullptr;
-    std::unordered_set<Sentence::sentence_ptr_t> symbol_set;
+    std::unordered_map<std::string, Sentence::sentence_ptr_t> symbol_map;
     Sentence::sentence_ptr_t sentence_ptr = nullptr;
     Sentence::sentence_ptr_t left_ptr = nullptr;
     Sentence::sentence_ptr_t right_ptr = nullptr;
+    std::string str;
     
     SUBCASE("monostate") {
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_MONOSTATE);
         REQUIRE(std::holds_alternative<std::monostate>(*sentence_ptr));
         REQUIRE(std::get<Sentence::INDEX_MONOSTATE>(*sentence_ptr) == std::monostate());
-        REQUIRE(symbol_set.empty());
+        REQUIRE(symbol_map.empty());
     }
 
     SUBCASE("Symbol") {
         ast_ptr = parse_first("FOO");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_SYMBOL);
         REQUIRE(std::holds_alternative<std::string>(*sentence_ptr));
-        REQUIRE(std::get<Sentence::INDEX_SYMBOL>(*sentence_ptr) == "FOO");
+        REQUIRE_NOTHROW(str = std::get<Sentence::INDEX_SYMBOL>(*sentence_ptr));
+        REQUIRE(str == "FOO");
 
-        CHECK(symbol_set.size() == 1);
-        CHECK(symbol_set.find(sentence_ptr) != symbol_set.end());
+        REQUIRE(symbol_map.size() == 1);
+        REQUIRE(symbol_map.contains(str));
+        REQUIRE(symbol_map.at(str) == sentence_ptr);
     }
 
     SUBCASE("Bool") {
         ast_ptr = parse_first("T");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_BOOL);
         REQUIRE(std::holds_alternative<bool>(*sentence_ptr));
         REQUIRE(std::get<Sentence::INDEX_BOOL>(*sentence_ptr) == true);
 
         ast_ptr = parse_first("F");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_BOOL);
         REQUIRE(std::holds_alternative<bool>(*sentence_ptr));
         REQUIRE(std::get<Sentence::INDEX_BOOL>(*sentence_ptr) == false);
 
-        CHECK(symbol_set.empty());
+        CHECK(symbol_map.empty());
     }
 
-    SUBCASE("Or") {
+    SUBCASE("Not") {
         ast_ptr = parse_first("~L33t");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_NOT);
         REQUIRE(std::holds_alternative<Sentence::Not>(*sentence_ptr));
         REQUIRE_NOTHROW(right_ptr = std::get<Sentence::INDEX_NOT>(*sentence_ptr).right);
 
         REQUIRE(right_ptr->index() == Sentence::INDEX_SYMBOL);
-        REQUIRE(std::get<Sentence::INDEX_SYMBOL>(*right_ptr) == "L33t");
+        REQUIRE_NOTHROW(str = std::get<Sentence::INDEX_SYMBOL>(*right_ptr));
+        REQUIRE(str == "L33t");
 
-        CHECK(symbol_set.size() == 1);
-        CHECK(symbol_set.find(right_ptr) != symbol_set.end());
+        REQUIRE(symbol_map.size() == 1);
+        REQUIRE(symbol_map.contains(str));
+        REQUIRE(symbol_map.at(str) == right_ptr);
     }
 
     SUBCASE("And") {
         ast_ptr = parse_first("a & b");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_AND);
         REQUIRE(std::holds_alternative<Sentence::And>(*sentence_ptr));
         REQUIRE_NOTHROW(left_ptr = std::get<Sentence::INDEX_AND>(*sentence_ptr).left);
         REQUIRE_NOTHROW(right_ptr = std::get<Sentence::INDEX_AND>(*sentence_ptr).right);
 
         REQUIRE(left_ptr->index() == Sentence::INDEX_SYMBOL);
-        REQUIRE(std::get<Sentence::INDEX_SYMBOL>(*left_ptr) == "a");
+        REQUIRE_NOTHROW(str = std::get<Sentence::INDEX_SYMBOL>(*left_ptr));
+        REQUIRE(str == "a");
+
+        REQUIRE(symbol_map.contains(str));
+        REQUIRE(symbol_map.at(str) == left_ptr);
 
         REQUIRE(right_ptr->index() == Sentence::INDEX_SYMBOL);
-        REQUIRE(std::get<Sentence::INDEX_SYMBOL>(*right_ptr) == "b");
+        REQUIRE_NOTHROW(str = std::get<Sentence::INDEX_SYMBOL>(*right_ptr));
+        REQUIRE(str == "b");
 
-        CHECK(symbol_set.size() == 2);
-        CHECK(symbol_set.find(right_ptr) != symbol_set.end());
-        CHECK(symbol_set.find(left_ptr) != symbol_set.end());
+        REQUIRE(symbol_map.contains(str));
+        REQUIRE(symbol_map.at(str) == right_ptr);
+        REQUIRE(symbol_map.size() == 2);
     }
 
     SUBCASE("Or") {
         ast_ptr = parse_first("T | F");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_OR);
         REQUIRE(std::holds_alternative<Sentence::Or>(*sentence_ptr));
         REQUIRE_NOTHROW(left_ptr = std::get<Sentence::INDEX_OR>(*sentence_ptr).left);
@@ -343,30 +353,32 @@ TEST_CASE("sentenceBuilder")
         REQUIRE(right_ptr->index() == Sentence::INDEX_BOOL);
         REQUIRE(std::get<Sentence::INDEX_BOOL>(*right_ptr) == false);
 
-        CHECK(symbol_set.size() == 0);
+        REQUIRE(symbol_map.empty());
     }
 
     SUBCASE("Imp") {
         ast_ptr = parse_first("c => T");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_IMP);
         REQUIRE(std::holds_alternative<Sentence::Imp>(*sentence_ptr));
         REQUIRE_NOTHROW(left_ptr = std::get<Sentence::INDEX_IMP>(*sentence_ptr).left);
         REQUIRE_NOTHROW(right_ptr = std::get<Sentence::INDEX_IMP>(*sentence_ptr).right);
 
         REQUIRE(left_ptr->index() == Sentence::INDEX_SYMBOL);
-        REQUIRE(std::get<Sentence::INDEX_SYMBOL>(*left_ptr) == "c");
+        REQUIRE_NOTHROW(str = std::get<Sentence::INDEX_SYMBOL>(*left_ptr));
+        REQUIRE(str == "c");
+
+        REQUIRE(symbol_map.contains(str));
+        REQUIRE(symbol_map.at(str) == left_ptr);
+        REQUIRE(symbol_map.size() == 1);
 
         REQUIRE(right_ptr->index() == Sentence::INDEX_BOOL);
         REQUIRE(std::get<Sentence::INDEX_BOOL>(*right_ptr) == true);
-
-        CHECK(symbol_set.size() == 1);
-        CHECK(symbol_set.find(left_ptr) != symbol_set.end());
     }
 
     SUBCASE("Iff") {
         ast_ptr = parse_first("F <=> d");
-        sentence_ptr = sentenceBuilder(ast_ptr, symbol_set);
+        sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
         REQUIRE(sentence_ptr->index() == Sentence::INDEX_IFF);
         REQUIRE(std::holds_alternative<Sentence::Iff>(*sentence_ptr));
         REQUIRE_NOTHROW(left_ptr = std::get<Sentence::INDEX_IFF>(*sentence_ptr).left);
@@ -376,10 +388,12 @@ TEST_CASE("sentenceBuilder")
         REQUIRE(std::get<Sentence::INDEX_BOOL>(*left_ptr) == false);
 
         REQUIRE(right_ptr->index() == Sentence::INDEX_SYMBOL);
-        REQUIRE(std::get<Sentence::INDEX_SYMBOL>(*right_ptr) == "d");
+        REQUIRE_NOTHROW(str = std::get<Sentence::INDEX_SYMBOL>(*right_ptr));
+        REQUIRE(str == "d");
 
-        CHECK(symbol_set.size() == 1);
-        CHECK(symbol_set.find(right_ptr) != symbol_set.end());
+        REQUIRE(symbol_map.contains(str));
+        REQUIRE(symbol_map.at(str) == right_ptr);
+        REQUIRE(symbol_map.size() == 1);
     }
 }
 
