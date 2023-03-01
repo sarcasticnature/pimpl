@@ -5,7 +5,7 @@
 #include <variant>
 #include <memory>
 #include <stack>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace pimpl
 {
@@ -170,14 +170,14 @@ public:
     //};
 
     Sentence() = default;
-    Sentence(sentence_ptr_t d, std::unordered_set<sentence_ptr_t> v)
+    Sentence(sentence_ptr_t d, std::unordered_map<std::string, sentence_ptr_t> v)
         : data_(d), symbols_(v)
     {
     }
 
 private:
     sentence_ptr_t data_;
-    std::unordered_set<sentence_ptr_t> symbols_;
+    std::unordered_map<std::string, sentence_ptr_t> symbols_;
 };
 
 }   // namespace pimpl
