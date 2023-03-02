@@ -1,11 +1,12 @@
-#ifndef __PIMPL__TYPES_HPP__
-#define __PIMPL__TYPES_HPP__
+#ifndef __PIMPL__SENTENCE_HPP__
+#define __PIMPL__SENTENCE_HPP__
 
 #include <string>
 #include <variant>
 #include <memory>
 #include <stack>
 #include <unordered_map>
+#include <optional>
 
 namespace pimpl
 {
@@ -175,11 +176,74 @@ public:
     {
     }
 
+    // Subtitute all symbols with a boolean value and determine if the sentence is true/false
+    // Returns std::nullopt if a problem was encountered,
+    // e.g. incorrect input symbols, issues with the sentence structure, etc
+    std::optional<bool> evaluate(std::unordered_map<std::string, bool> symbol_values);
+
+    // Check if the sentence evaluates to true or false
+    // All symbols are expected to have been substituted for bools,
+    // thus nullopt is returned if any are present
+    std::optional<bool> truth();
+
 private:
     sentence_ptr_t data_;
     std::unordered_map<std::string, sentence_ptr_t> symbols_;
+
+    struct TruthVisitor
+    {
+        static bool negate (bool b) { return !b; };
+
+        std::optional<bool> operator()(std::monostate _) { return std::nullopt; }
+        std::optional<bool> operator()(std::string _) { return std::nullopt; }
+        std::optional<bool> operator()(bool b) { return {b}; }
+        std::optional<bool> operator()(Not n)
+        {
+            return std::visit(*this, *n.right).transform(negate);
+        }
+
+        std::optional<bool> operator()(And a)
+        {
+            return std::visit(*this, *a.left).and_then(
+                [this, &a](bool b) -> std::optional<bool> {
+                    if (b) return std::visit(*this, *a.right);
+                    else return {false};
+                }
+            );
+        }
+
+        std::optional<bool> operator()(Or o)
+        {
+            return std::visit(*this, *o.left).and_then(
+                [this, &o](bool b) -> std::optional<bool> {
+                    if (b) return {true};
+                    else return std::visit(*this, *o.right);
+                }
+            );
+        }
+
+        std::optional<bool> operator()(Imp i)
+        {
+            return std::visit(*this, *i.right).and_then(
+                [this, &i](bool b) -> std::optional<bool> {
+                    if (b) return {true};
+                    else return std::visit(*this, *i.left).transform(negate);
+                }
+            );
+        }
+
+        std::optional<bool> operator()(Iff i)
+        {
+            return std::visit(*this, *i.left).and_then(
+                [this, &i](bool b) -> std::optional<bool> {
+                    if (b) return std::visit(*this, *i.right);
+                    else return std::visit(*this, *i.right).transform(negate);
+                }
+            );
+        }
+    };
 };
 
 }   // namespace pimpl
 
-#endif  // __PIMPL__TYPES_HPP__
+#endif  // __PIMPL__SENTENCE_HPP__

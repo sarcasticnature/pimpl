@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(pimpl)
 
 #set(CMAKE_CXX_COMPILER g++-12)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_FLAGS "-Wall -Werror -Wpedantic")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -19,6 +19,7 @@ add_subdirectory(3rd_party/doctest)
 
 set(pimpl_srcs
     src/parsing.cpp
+    src/sentence.cpp
 )
 
 add_library(pimpl ${pimpl_srcs})
