@@ -190,6 +190,7 @@ private:
     sentence_ptr_t data_;
     std::unordered_map<std::string, sentence_ptr_t> symbols_;
 
+    // TODO switch to const references?
     struct TruthVisitor
     {
         static bool negate (bool b) { return !b; };
@@ -240,6 +241,77 @@ private:
                     else return std::visit(*this, *i.right).transform(negate);
                 }
             );
+        }
+    };
+
+    // TODO switch to const references?
+    struct NenfVisitor
+    {
+        static bool negate (bool b) { return !b; };
+
+        // TODO: is monostate error worthy?
+        sentence_t operator()(std::monostate _) { return std::monostate{}; }
+        sentence_t operator()(std::string s) { return s; }
+        sentence_t operator()(bool b) { return b; }
+
+        sentence_t operator()(Not n)
+        {
+            sentence_ptr_t left, right;
+            switch (n.right->index()) {
+                case INDEX_NOT:
+                    return *std::get<Not>(*n.right).right;
+                case INDEX_AND:
+                    left = std::make_shared<sentence_t>(Not(std::get<And>(*n.right).left));
+                    right = std::make_shared<sentence_t>(Not(std::get<And>(*n.right).right));
+                    *left = std::visit(*this, *left);
+                    *right = std::visit(*this, *right);
+                    return Or(left, right);
+                case INDEX_OR:
+                    left = std::make_shared<sentence_t>(Not(std::get<Or>(*n.right).left));
+                    right = std::make_shared<sentence_t>(Not(std::get<Or>(*n.right).right));
+                    *left = std::visit(*this, *left);
+                    *right = std::visit(*this, *right);
+                    return And(left, right);
+                case INDEX_IMP:
+                    right = std::make_shared<sentence_t>(Not(std::get<Imp>(*n.right).right));
+                    *left = std::visit(*this, *std::get<Imp>(*n.right).left);
+                    *right = std::visit(*this, *right);
+                    return And(left, right);
+                case INDEX_IFF:
+                    right = std::make_shared<sentence_t>(Not(std::get<Iff>(*n.right).right));
+                    *left = std::visit(*this, *std::get<Iff>(*n.right).left);
+                    *right = std::visit(*this, *right);
+                    return Iff(left, right);
+            }
+
+            return n;
+        }
+
+        sentence_t operator()(And a)
+        {
+            *a.left = std::visit(*this, *a.left);
+            *a.right = std::visit(*this, *a.right);
+            return a;
+        }
+
+        sentence_t operator()(Or o)
+        {
+            *o.left = std::visit(*this, *o.left);
+            *o.right = std::visit(*this, *o.right);
+            return o;
+        }
+
+        sentence_t operator()(Imp i)
+        {
+            sentence_ptr_t left = std::make_shared<sentence_t>(Not(i.left));
+            return Or(left, i.right);
+        }
+
+        sentence_t operator()(Iff i)
+        {
+            *i.left = std::visit(*this, *i.left);
+            *i.right = std::visit(*this, *i.right);
+            return i;
         }
     };
 };
