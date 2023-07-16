@@ -24,7 +24,7 @@ set(pimpl_srcs
 
 add_library(pimpl ${pimpl_srcs})
 target_include_directories(pimpl PUBLIC include)
-target_link_libraries(pimpl PRIVATE foonathan::lexy doctest)
+target_link_libraries(pimpl PUBLIC foonathan::lexy PRIVATE doctest)
 target_compile_definitions(pimpl PRIVATE DOCTEST_CONFIG_DISABLE)
 
 add_subdirectory(app)

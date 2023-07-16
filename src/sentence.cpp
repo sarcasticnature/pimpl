@@ -7,6 +7,15 @@
 namespace pimpl
 {
 
+std::string Sentence::stringify() const
+{
+    if (data_ == nullptr) {
+        return "";
+    }
+
+    return std::visit(StringVisitor{}, *data_);
+}
+
 std::optional<bool> Sentence::evaluate(std::unordered_map<std::string, bool> symbol_values)
 {
     if (symbols_.size() != symbol_values.size()) {

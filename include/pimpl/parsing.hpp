@@ -1,5 +1,6 @@
 #include <memory>
 #include <vector>
+#include <optional>
 
 #include "lexy/dsl.hpp"
 #include "lexy/callback.hpp"
@@ -60,7 +61,7 @@ struct AbstractBinary : public AbstractBase
         : op(o), left(std::move(l)), right(std::move(r)) {}
 };
 
-Sentence toSentence(abstract_ptr ptr);
+std::optional<Sentence> toSentence(abstract_ptr ptr);
 
 }   // namespace ast
 
@@ -164,5 +165,7 @@ struct GrammarSentence
 };
 
 }   // namespace grammar
+
+std::optional<std::vector<Sentence>> parseString(const std::string& str);
 
 }   // namespace pimpl

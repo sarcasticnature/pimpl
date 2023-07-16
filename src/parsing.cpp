@@ -1,10 +1,35 @@
 #include <unordered_map>
+#include <string>
 
 #include "doctest/doctest.h"
+#include "lexy/action/parse.hpp"
+#include "lexy/input/string_input.hpp"
 
 #include "pimpl/parsing.hpp"
 
-namespace pimpl::ast
+namespace pimpl
+{
+
+std::optional<std::vector<Sentence>> parseString(const std::string& str)
+{
+    auto input = lexy::string_input<lexy::utf8_encoding>(str);
+    auto parse_result = lexy::parse<pimpl::grammar::GrammarSentence>(input, lexy::noop);
+    if (!parse_result.has_value()) {
+        return std::nullopt;
+    }
+
+    std::vector<Sentence> ret;
+    for (const auto& ast_ptr : parse_result.value()) {
+        if (auto sentence_opt = ast::toSentence(ast_ptr)) {
+            ret.push_back(sentence_opt.value());
+        } else {
+            return std::nullopt;    // TODO: return partial result?
+        }
+    }
+    return {ret};
+}
+
+namespace ast
 {
 
 inline Sentence::sentence_ptr_t sentenceBuilder(
@@ -61,21 +86,22 @@ inline Sentence::sentence_ptr_t sentenceBuilder(
     return nullptr;
 }
 
-Sentence toSentence(abstract_ptr ast_ptr)
+std::optional<Sentence> toSentence(abstract_ptr ast_ptr)
 {
     Sentence::sentence_ptr_t sentence_ptr;
 
     std::unordered_map<std::string, Sentence::sentence_ptr_t> symbol_map;
 
     if (ast_ptr == nullptr) {
-        return Sentence(sentence_ptr, symbol_map);
+        return std::nullopt;
     }
 
     sentence_ptr = sentenceBuilder(ast_ptr, symbol_map);
-    return Sentence(sentence_ptr, symbol_map);
+    return {Sentence(sentence_ptr, symbol_map)};
 }
 
-}   // namespace pimpl::ast
+}   // namespace ast
+}   // namespace pimpl
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -84,8 +110,6 @@ Sentence toSentence(abstract_ptr ast_ptr)
 
 #include "doctest/doctest.h"
 #include "lexy/action/match.hpp"
-#include "lexy/action/parse.hpp"
-#include "lexy/input/string_input.hpp"
 
 namespace
 {
@@ -122,7 +146,7 @@ auto parse_str(const char* str)
 {
     auto input = lexy::zstring_input<lexy::utf8_encoding>(str);
     auto result = lexy::parse<pimpl::grammar::GrammarSentence>(input, lexy::noop);
-    INFO(std::string(str));
+    INFO(str);
     REQUIRE(result);
     return result.value();
 }

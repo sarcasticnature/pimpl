@@ -176,6 +176,9 @@ public:
     {
     }
 
+    // Create a string representation of the sentence
+    std::string stringify() const;
+
     // Subtitute all symbols with a boolean value and determine if the sentence is true/false
     // Returns std::nullopt if a problem was encountered,
     // e.g. incorrect input symbols, issues with the sentence structure, etc
@@ -189,6 +192,30 @@ public:
 private:
     sentence_ptr_t data_;
     std::unordered_map<std::string, sentence_ptr_t> symbols_;
+
+    struct StringVisitor
+    {
+        std::string operator()(std::monostate _) { return ""; }
+        std::string operator()(std::string s) { return s; }
+        std::string operator()(bool b) { return b ? "T" : "F"; }
+        std::string operator()(Not n) { return "~" + std::visit(*this, *n.right); }
+        std::string operator()(And a)
+        {
+            return "(" + std::visit(*this, *a.left) + " & " + std::visit(*this, *a.right) + ")";
+        }
+        std::string operator()(Or o)
+        {
+            return "(" + std::visit(*this, *o.left) + " | " + std::visit(*this, *o.right) + ")";
+        }
+        std::string operator()(Imp i)
+        {
+            return "(" + std::visit(*this, *i.left) + " => " + std::visit(*this, *i.right) + ")";
+        }
+        std::string operator()(Iff i)
+        {
+            return "(" + std::visit(*this, *i.left) + " <=> " + std::visit(*this, *i.right) + ")";
+        }
+    };
 
     // TODO switch to const references?
     struct TruthVisitor
